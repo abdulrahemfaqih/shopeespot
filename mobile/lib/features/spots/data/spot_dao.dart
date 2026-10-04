@@ -58,4 +58,23 @@ class SpotDao extends DatabaseAccessor<AppDatabase> with _$SpotDaoMixin {
           ..where((tbl) => tbl.id.equals(id) & tbl.updatedAt.equals(updatedAt)))
         .write(const SpotsCompanion(dirty: Value(false)));
   }
+
+  Stream<int> watchDirtyCount() {
+    final countExp = spots.id.count();
+    return (selectOnly(spots)
+          ..addColumns([countExp])
+          ..where(spots.dirty.equals(true)))
+        .watchSingle()
+        .map((row) => row.read(countExp) ?? 0);
+  }
+
+  Future<int> countDirty() async {
+    final countExp = spots.id.count();
+    final row =
+        await (selectOnly(spots)
+              ..addColumns([countExp])
+              ..where(spots.dirty.equals(true)))
+            .getSingle();
+    return row.read(countExp) ?? 0;
+  }
 }

@@ -1,2 +1,2 @@
-// Package backend provides the SpotShopee backend services.
-package backend
+// Package main provides the SpotShopee backend services and entry point.
+package main

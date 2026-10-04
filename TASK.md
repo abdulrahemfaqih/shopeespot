@@ -74,26 +74,26 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
 
 ## Fase 6: Backend
 
-- [ ] **T-22 Fondasi backend.** `internal/config`, `internal/db/pool.go` (pgxpool kecil, `cache_describe`), `internal/httpx` (format error, middleware recover, request id, log slog, batas body 1 MB), `GET /healthz`, rakit di `main.go` di root `backend/` dan listen di `$PORT` (fallback `3000`) sesuai `ARCHITECTURE.md` bagian 3. Tambahkan `.env.example` dan `vercel.json` (`{"framework":"go","regions":["sin1"]}`).
+- [x] **T-22 Fondasi backend.** `internal/config`, `internal/db/pool.go` (pgxpool kecil, `cache_describe`), `internal/httpx` (format error, middleware recover, request id, log slog, batas body 1 MB), `GET /healthz`, rakit di `main.go` di root `backend/` dan listen di `$PORT` (fallback `3000`) sesuai `ARCHITECTURE.md` bagian 3. Tambahkan `.env.example` dan `vercel.json` (`{"framework":"go","regions":["sin1"]}`).
   *Selesai jika:* `go run .` menjalankan server di port dari `PORT` dan `/healthz` menjawab 200.
-- [ ] **T-23 Migrasi.** `migrations/0001_init.sql` sesuai `ARCHITECTURE.md` bagian 4, `migrations/embed.go`, `cmd/migrate/main.go` (goose, `up`/`down`, memakai `DATABASE_URL_DIRECT`).
+- [x] **T-23 Migrasi.** `migrations/0001_init.sql` sesuai `ARCHITECTURE.md` bagian 4, `migrations/embed.go`, `cmd/migrate/main.go` (goose, `up`/`down`, memakai `DATABASE_URL_DIRECT`).
   *Selesai jika:* `go run ./cmd/migrate up` membuat semua tabel di Neon cabang dev.
-- [ ] **T-24 Auth.** `password.go`, `tokens.go`, repository, service, handler untuk register/login/refresh/logout dengan rotasi + grace + deteksi pemakaian ulang (`ARCHITECTURE.md` bagian 9), middleware Bearer yang menaruh `user_id` di context, `REGISTRATION_ENABLED`.
+- [x] **T-24 Auth.** `password.go`, `tokens.go`, repository, service, handler untuk register/login/refresh/logout dengan rotasi + grace + deteksi pemakaian ulang (`ARCHITECTURE.md` bagian 9), middleware Bearer yang menaruh `user_id` di context, `REGISTRATION_ENABLED`.
   *Selesai jika:* tes unit rotasi mencakup normal, dalam grace, di luar grace, kedaluwarsa, dicabut; login salah selalu `invalid_credentials`.
-- [ ] **T-25 Sync.** Model + `validate.go`, repository (upsert massal `unnest` dengan syarat `updated_at` lebih baru, pull berkursor per tabel), service dalam satu transaksi, handler `POST /v1/sync` dengan batas 200 push dan 500 pull.
+- [x] **T-25 Sync.** Model + `validate.go`, repository (upsert massal `unnest` dengan syarat `updated_at` lebih baru, pull berkursor per tabel), service dalam satu transaksi, handler `POST /v1/sync` dengan batas 200 push dan 500 pull.
   *Selesai jika:* tes validasi lolos; uji manual dengan dua klien: baris lebih baru menang, soft delete menyebar, `has_more` bekerja.
 - [ ] **T-26 Deploy Vercel.** Panduan singkat di Catatan: Root Directory `backend`, Framework Preset `go`, env var, region `sin1` (default Vercel `iad1` harus diganti), hubungkan Neon pooled (region Singapura). Go runtime Vercel masih Beta, catat kendala di Catatan. Jalankan migrasi ke database produksi. Hentikan pendaftaran setelah akun dibuat (`REGISTRATION_ENABLED=false`).
   *Selesai jika:* `/healthz` produksi menjawab 200 dan login berhasil lewat curl. (Langkah akun Vercel/Neon dilakukan pengguna; agent menyiapkan perintah dan daftar env.)
 
 ## Fase 7: Integrasi login dan sync
 
-- [ ] **T-27 Klien API dan token.** `ApiClient` (Dio), `TokenStore` (secure storage), `AuthInterceptor` dengan refresh single-flight, penulisan refresh token baru sebelum dipakai, penanganan sesi berakhir tanpa menghapus data.
+- [x] **T-27 Klien API dan token.** `ApiClient` (Dio), `TokenStore` (secure storage), `AuthInterceptor` dengan refresh single-flight, penulisan refresh token baru sebelum dipakai, penanganan sesi berakhir tanpa menghapus data.
   *Selesai jika:* tes dengan Dio palsu: dua request 401 bersamaan hanya memicu satu refresh.
-- [ ] **T-28 Login dan router.** `LoginScreen` (email, kata sandi; Daftar bila server mengizinkan), `go_router` redirect: belum ada sesi -> `/login`, sudah ada -> peta. Setelah login pertama, aplikasi tidak lagi bergantung pada server untuk dibuka.
+- [x] **T-28 Login dan router.** `LoginScreen` (email, kata sandi; Daftar bila server mengizinkan), `go_router` redirect: belum ada sesi -> `/login`, sudah ada -> peta. Setelah login pertama, aplikasi tidak lagi bergantung pada server untuk dibuka.
   *Selesai jika:* aplikasi dibuka offline dengan sesi tersimpan langsung ke peta.
-- [ ] **T-29 SyncService.** `merge_rules`, `SyncApi`, `SyncService` single-flight sesuai `ARCHITECTURE.md` bagian 8; pemicu: buka, resume, perubahan lokal (debounce 3 dtk), koneksi kembali, manual; tandai bersih hanya jika `updated_at` tidak berubah sejak dikirim; simpan kursor.
+- [x] **T-29 SyncService.** `merge_rules`, `SyncApi`, `SyncService` single-flight sesuai `ARCHITECTURE.md` bagian 8; pemicu: buka, resume, perubahan lokal (debounce 3 dtk), koneksi kembali, manual; tandai bersih hanya jika `updated_at` tidak berubah sejak dikirim; simpan kursor.
   *Selesai jika:* tes `merge_rules` lengkap; uji dua perangkat/dua akun uji: data muncul di perangkat kedua.
-- [ ] **T-30 Pengaturan sinkron dan akun.** Status ("Terakhir sinkron...", "N perubahan menunggu"), tombol **Sinkronkan sekarang**, status sesi berakhir dengan ajakan masuk lagi, **Keluar** dengan peringatan bila ada perubahan belum tersinkron dan tanpa menghapus data lokal diam-diam.
+- [x] **T-30 Pengaturan sinkron dan akun.** Status ("Terakhir sinkron...", "N perubahan menunggu"), tombol **Sinkronkan sekarang**, status sesi berakhir dengan ajakan masuk lagi, **Keluar** dengan peringatan bila ada perubahan belum tersinkron dan tanpa menghapus data lokal diam-diam.
   *Selesai jika:* semua keadaan pada PRD F11 dapat dicoba.
 
 ## Fase 8: Penyempurnaan dan performa
@@ -113,5 +113,34 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
 - Keputusan teknis penting:
   - Kebijakan file generate drift diabaikan (*.g.dart masuk .gitignore).
   - T-08 Hasil pemeriksaan BuiltInMapCachingProvider: Tile basi (melewati overrideFreshAge 14 hari) tidak langsung dihapus secara fisik saat kedaluwarsa melainkan direvalidasi saat ada internet dan dipakai sebagai fallback saat offline. Untuk mematuhi batasan retensi CARTO maksimal 30 hari, TileCacheManager menerapkan pembersihan keras (destroy dengan deleteCache: true) berkala jika jeda sejak pembersihan terakhir > 21 hari.
+  - T-26 Panduan Deploy Vercel (Backend):
+    1. Pengaturan Proyek Vercel:
+       - Root Directory: `backend`
+       - Framework Preset: `Go`
+       - Region: `sin1` (Singapura, sesuai `backend/vercel.json` dan Neon Singapore `aws-ap-southeast-1`).
+    2. Variabel Lingkungan di Vercel Dashboard (Settings -> Environment Variables):
+       - `APP_ENV`: `production`
+       - `DATABASE_URL`: Connection string Neon pooled (`-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require`)
+       - `JWT_SECRET`: Minimal 32 karakter acak
+       - `ACCESS_TOKEN_TTL`: `15m`
+       - `REFRESH_TOKEN_TTL`: `720h`
+       - `REFRESH_GRACE`: `60s`
+       - `BCRYPT_COST`: `12`
+       - `REGISTRATION_ENABLED`: `true` saat pertama kali mendaftar akun pribadi, lalu ubah ke `false` setelah akun dibuat.
+    3. Migrasi Database Produksi (dijalankan dari terminal lokal):
+       ```bash
+       cd backend
+       DATABASE_URL_DIRECT="postgresql://<user>:<password>@<ep-direct>.ap-southeast-1.aws.neon.tech/neondb?sslmode=require" go run ./cmd/migrate up
+       ```
+    4. Verifikasi Endpoint Produksi:
+       ```bash
+       curl -i https://<your-vercel-domain>.vercel.app/healthz
+       curl -i -X POST https://<your-vercel-domain>.vercel.app/v1/auth/login \
+         -H "Content-Type: application/json" \
+         -d '{"email":"driver@example.com","password":"yourpassword"}'
+       ```
+    5. Catatan Go Runtime Vercel:
+       - Go runtime di Vercel berstatus Beta, entry dideteksi dari `main.go` di root `backend/`.
+       - Port didengarkan dinamis melalui `$PORT`.
 - Angka ukur performa (T-31):
 - Hal yang belum bisa dikerjakan dan alasannya:

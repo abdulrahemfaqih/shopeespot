@@ -114,6 +114,25 @@ class OrderDao extends DatabaseAccessor<AppDatabase> with _$OrderDaoMixin {
         .write(const OrdersCompanion(dirty: Value(false)));
   }
 
+  Stream<int> watchDirtyCount() {
+    final countExp = orders.id.count();
+    return (selectOnly(orders)
+          ..addColumns([countExp])
+          ..where(orders.dirty.equals(true)))
+        .watchSingle()
+        .map((row) => row.read(countExp) ?? 0);
+  }
+
+  Future<int> countDirty() async {
+    final countExp = orders.id.count();
+    final row =
+        await (selectOnly(orders)
+              ..addColumns([countExp])
+              ..where(orders.dirty.equals(true)))
+            .getSingle();
+    return row.read(countExp) ?? 0;
+  }
+
   Future<List<PeakHourAggregation>> getPeakOrderAggregation({
     required DateTime since,
     required int dowMin,
