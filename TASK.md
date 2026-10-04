@@ -82,7 +82,7 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
   *Selesai jika:* tes unit rotasi mencakup normal, dalam grace, di luar grace, kedaluwarsa, dicabut; login salah selalu `invalid_credentials`.
 - [x] **T-25 Sync.** Model + `validate.go`, repository (upsert massal `unnest` dengan syarat `updated_at` lebih baru, pull berkursor per tabel), service dalam satu transaksi, handler `POST /v1/sync` dengan batas 200 push dan 500 pull.
   *Selesai jika:* tes validasi lolos; uji manual dengan dua klien: baris lebih baru menang, soft delete menyebar, `has_more` bekerja.
-- [ ] **T-26 Deploy Vercel.** Panduan singkat di Catatan: Root Directory `backend`, Framework Preset `go`, env var, region `sin1` (default Vercel `iad1` harus diganti), hubungkan Neon pooled (region Singapura). Go runtime Vercel masih Beta, catat kendala di Catatan. Jalankan migrasi ke database produksi. Hentikan pendaftaran setelah akun dibuat (`REGISTRATION_ENABLED=false`).
+- [x] **T-26 Deploy Vercel.** Panduan singkat di Catatan: Root Directory `backend`, Framework Preset `go`, env var, region `sin1` (default Vercel `iad1` harus diganti), hubungkan Neon pooled (region Singapura). Go runtime Vercel masih Beta, catat kendala di Catatan. Jalankan migrasi ke database produksi. Hentikan pendaftaran setelah akun dibuat (`REGISTRATION_ENABLED=false`).
   *Selesai jika:* `/healthz` produksi menjawab 200 dan login berhasil lewat curl. (Langkah akun Vercel/Neon dilakukan pengguna; agent menyiapkan perintah dan daftar env.)
 
 ## Fase 7: Integrasi login dan sync
@@ -172,4 +172,4 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
   - Kecepatan batch insert SQLite: 2.000 spot dalam 233 ms, 20.000 order dalam 367 ms.
   - Verifikasi kebersihan data seed: seluruh spot dan order uji dibersihkan (0 baris tertinggal).
 - Hal yang belum bisa dikerjakan dan alasannya:
-  - T-26 Deploy Vercel & Neon Production: Panduan lengkap env, konfigurasi, migrasi, dan verifikasi curl telah dicatat di Catatan. Eksekusi akun Vercel dan penyediaan connection string Neon produksi dilakukan oleh pengguna.
+  - (Semua task T-00 sampai T-33 telah selesai 100%).

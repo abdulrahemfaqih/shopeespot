@@ -3,7 +3,7 @@ class Env {
 
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:3000',
+    defaultValue: 'https://shopeespot.vercel.app',
   );
 
   static const String cartoApiKey = String.fromEnvironment(
