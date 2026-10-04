@@ -37,6 +37,8 @@ class CategoryMarker extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Align(
         alignment: Alignment.bottomCenter,
+        widthFactor: 1.0,
+        heightFactor: 1.0,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,

@@ -45,7 +45,7 @@ Instal dengan `flutter pub add` / `go get` tanpa versi manual. Tidak ada package
 Catatan:
 
 - `flutter_map_marker_cluster` harus kompatibel dengan versi `flutter_map` yang terpasang. Jika tidak kompatibel, jangan paksa: buat cluster sederhana berbasis grid (bucket koordinat sesuai zoom) di `features/map/domain/clustering.dart` dengan unit test.
-- Cache tile: `flutter_map` sejak v8.2 punya cache disk bawaan (`BuiltInMapCachingProvider`), aktif secara default di platform non-web, batas lunak 1 GB, masa segar mengikuti header HTTP. Sistem operasi boleh menghapusnya kapan saja dan tidak dijamin, jadi jangan diandalkan sebagai peta offline yang pasti. **Jangan** membuat fitur unduh area massal. Aturan CARTO yang harus dipatuhi ada di bagian 6.
+- Cache tile: `flutter_map` sejak v8.2 punya cache disk bawaan (`BuiltInMapCachingProvider`), aktif secara default di platform non-web, batas lunak 1 GB, masa segar mengikuti header HTTP. Sistem operasi boleh menghapusnya kapan saja dan tidak dijamin, jadi jangan diandalkan sebagai peta offline yang pasti. **Jangan** membuat fitur unduh area massal. Aturan Stadia Maps yang harus dipatuhi ada di bagian 6.
 - Set `userAgentPackageName` pada `TileLayer` ke application id aplikasi.
 
 ### Go (`backend/`)
@@ -73,7 +73,7 @@ app/
   router.dart                   # go_router + redirect sesi
   theme/ tokens.dart  app_theme.dart
 core/
-  config/env.dart               # String.fromEnvironment: API_BASE_URL, CARTO_API_KEY
+  config/env.dart               # String.fromEnvironment: API_BASE_URL, STADIA_API_KEY
   db/ app_database.dart  tables.dart  converters.dart
   network/ api_client.dart  auth_interceptor.dart  api_error.dart
   location/ location_service.dart
@@ -253,16 +253,16 @@ Haversine ke semua spot terfilter, saring `<= radius`, urutkan. Untuk ribuan spo
 
 ## 6. Peta
 
-- URL tile terang: `https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png?key=$CARTO_API_KEY`
-- Tile gelap: sama dengan `dark_all`.
-- Kunci CARTO diberikan lewat `--dart-define=CARTO_API_KEY=...` (gratis, daftar di carto.com/basemaps/apikey). Jangan di-commit.
-- Pengembangan tanpa kunci boleh memakai tile standar OSM secara ringan, tidak untuk rilis.
-- Atribusi wajib terlihat dan mencolok (lihat `DESIGN.md`); CARTO dapat menangguhkan key jika atribusi tidak ada.
-- **Aturan CARTO soal penyimpanan tile** (syarat penggunaan basemap, diperiksa Okt 2026): tile tidak boleh disimpan di perangkat lebih dari 30 hari, dilarang mengunduh massal (bulk), dan dilarang proxy/cache di sisi server. Karena itu:
+- URL tile terang: `https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$STADIA_API_KEY`
+- Tile gelap: sama dengan `alidade_smooth_dark`.
+- Kunci Stadia diberikan lewat `--dart-define=STADIA_API_KEY=...` (daftar di client.stadiamaps.com). Jangan di-commit.
+- Pengembangan tanpa kunci boleh memakai tile tanpa key (Stadia izinkan localhost dan debug); untuk rilis selalu pakai key agar tidak diblokir.
+- Atribusi wajib terlihat dan mencolok (lihat `DESIGN.md`); Stadia Maps dapat menangguhkan key jika atribusi tidak ada.
+- **Aturan penyimpanan tile Stadia Maps**: tile tidak boleh diunduh massal atau di-proxy/cache di sisi server. Cache pasif di perangkat diperbolehkan. Karena itu:
   - Hanya cache pasif bawaan `flutter_map`; tanpa unduh area.
-  - Batasi masa segar tile maksimal 14 hari lewat `overrideFreshAge` dan kecilkan `maxCacheSize` (mis. 200 MB; cek satuannya di dokumentasi).
-  - Jangan mengandalkan kedaluwarsa saja: catat tanggal pembersihan terakhir di `shared_preferences`, dan jika sudah lebih dari 21 hari, hapus seluruh cache tile (`deleteCache: true`) saat aplikasi dibuka. Periksa pada T-08 apakah tile basi memang dibuang oleh provider; bila ya, pembersihan berkala tetap dipertahankan sebagai pengaman.
-  - Akibat yang disengaja: area yang tidak dilihat dalam beberapa minggu terakhir tampil kosong saat offline. Spot dan marker tetap tampil karena berasal dari SQLite.
+  - Batasi masa segar tile maksimal 7 hari lewat `overrideFreshAge` dan `maxCacheSize` 100 MB.
+  - Catat tanggal pembersihan terakhir di `shared_preferences`; jika sudah lebih dari 7 hari, hapus seluruh cache tile (`deleteCache: true`) saat aplikasi dibuka.
+  - Akibat yang disengaja: area yang tidak dilihat dalam beberapa hari terakhir tampil kosong saat offline. Spot dan marker tetap tampil karena berasal dari SQLite.
 - Layer terpisah: `TileLayer`, `SpotMarkersLayer` (hanya marker di viewport + padding, cluster saat zoom < 15, label saat zoom >= 15), `GpsLayer`. Event kamera di-debounce sebelum menghitung viewport.
 - Android: `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `INTERNET`; `<queries>` untuk skema `https` dan `google.navigation` agar `url_launcher` dapat membuka aplikasi.
 - GPS: `LocationSettings(accuracy: high, distanceFilter: 10)`. Posisi awal dari `getLastKnownPosition`.
@@ -428,7 +428,7 @@ Set `REGISTRATION_ENABLED=false` setelah akun pribadi dibuat.
 
 ### Mobile
 
-`--dart-define=API_BASE_URL=https://<project>.vercel.app --dart-define=CARTO_API_KEY=...`, dibaca lewat `core/config/env.dart`.
+`--dart-define=API_BASE_URL=https://<project>.vercel.app --dart-define=STADIA_API_KEY=...`, dibaca lewat `core/config/env.dart`.
 
 ## 13. Pengujian
 

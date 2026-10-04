@@ -56,11 +56,12 @@ class MainMapView extends StatelessWidget {
   final VoidCallback onDetailClose;
 
   static String tileUrl(Brightness brightness) {
-    final style = brightness == Brightness.dark ? 'dark_all' : 'light_all';
-    final keyParam = Env.cartoApiKey.isNotEmpty
-        ? '?key=${Env.cartoApiKey}'
-        : '';
-    return 'https://a.basemaps.cartocdn.com/rastertiles/$style/{z}/{x}/{y}@2x.png$keyParam';
+    final style = brightness == Brightness.dark
+        ? 'alidade_smooth_dark'
+        : 'alidade_smooth';
+    final key = Env.stadiaApiKey;
+    final keyParam = key.isNotEmpty ? '?api_key=$key' : '';
+    return 'https://tiles.stadiamaps.com/tiles/$style/{z}/{x}/{y}{r}.png$keyParam';
   }
 
   @override
@@ -94,6 +95,8 @@ class MainMapView extends StatelessWidget {
               urlTemplate: tileUrl(theme.brightness),
               userAgentPackageName: 'com.example.shopeespot',
               retinaMode: isRetina,
+              maxNativeZoom: 19,
+              maxZoom: 19,
             ),
             if (currentCamera != null)
               SpotMarkersLayer(

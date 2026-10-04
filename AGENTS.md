@@ -105,7 +105,7 @@ Task selesai hanya jika kriteria selesai di `TASK.md` terpenuhi dan perintah di 
 ## Larangan
 
 - Menambah fitur di luar `PRD.md`, termasuk heatmap, kategori tambahan, isi nama otomatis (Nominatim), deteksi duplikat, dan CSV.
-- Mengunduh tile peta secara massal untuk offline. Cache tile hanya pasif dari tile yang pernah dilihat dan tidak disimpan lebih dari 30 hari (aturan CARTO, lihat `ARCHITECTURE.md` bagian 6).
+- Mengunduh tile peta secara massal untuk offline. Cache tile hanya pasif dari tile yang pernah dilihat dan tidak disimpan lebih dari 7 hari (pengaturan cache Stadia Maps, lihat `ARCHITECTURE.md` bagian 6).
 - Gradient, glow, animasi pulse, label eyebrow, glassmorphism, emoji sebagai ikon, dan pola lain di daftar larangan `DESIGN.md`.
 - Menyimpan state penting hanya di memori. Sumber kebenaran adalah SQLite lokal.
 - Mengubah skema tabel tanpa membuat migrasi baru (Postgres) dan skema drift yang selaras (SQLite).

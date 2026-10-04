@@ -70,7 +70,7 @@ class SpotMarkersLayer extends StatelessWidget {
         point: LatLng(spot.latitude, spot.longitude),
         width: showLabel ? 140.0 : (isSelected ? 44.0 : 36.0),
         height: totalHeight,
-        alignment: Alignment.bottomCenter,
+        alignment: Alignment.topCenter,
         child: CategoryMarker(
           category: spot.category,
           name: spot.name,

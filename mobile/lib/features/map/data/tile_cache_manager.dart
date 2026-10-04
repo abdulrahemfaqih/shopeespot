@@ -6,9 +6,9 @@ class TileCacheManager {
   const TileCacheManager._();
 
   static const String lastCleanKey = 'tile_cache_last_clean_date';
-  static const int maxCacheSizeBytes = 200 * 1024 * 1024; // 200 MB
-  static const Duration freshAge = Duration(days: 14);
-  static const Duration cleanInterval = Duration(days: 21);
+  static const int maxCacheSizeBytes = 100 * 1024 * 1024; // 100 MB
+  static const Duration freshAge = Duration(days: 7);
+  static const Duration cleanInterval = Duration(days: 7);
 
   static Future<void> initialize({
     SharedPreferences? prefs,

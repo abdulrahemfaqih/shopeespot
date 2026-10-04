@@ -54,7 +54,7 @@ void main() {
   group('Env configuration', () {
     test('Env contains default values', () {
       expect(Env.apiBaseUrl, isNotEmpty);
-      expect(Env.cartoApiKey, isA<String>());
+      expect(Env.stadiaApiKey, isA<String>());
     });
   });
 

@@ -6,8 +6,8 @@ class Env {
     defaultValue: 'https://shopeespot.vercel.app',
   );
 
-  static const String cartoApiKey = String.fromEnvironment(
-    'CARTO_API_KEY',
-    defaultValue: 'cb1_4940_1_cc980a6361494a0ef3e15f93',
+  static const String stadiaApiKey = String.fromEnvironment(
+    'STADIA_API_KEY',
+    defaultValue: 'b945793d-a0ae-4a69-9426-83b8a3c51181',
   );
 }

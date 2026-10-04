@@ -48,7 +48,7 @@ class MapAttribution extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: tokens.space12, bottom: bottomOffset),
       child: Text(
-        '© OpenStreetMap, © CARTO',
+        '© Stadia Maps, © OpenMapTiles, © OpenStreetMap',
         style: TextStyle(
           fontSize: 10.0,
           fontWeight: FontWeight.w400,

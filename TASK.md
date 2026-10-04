@@ -30,9 +30,9 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
 
 ## Fase 2: Peta
 
-- [x] **T-07 Konfigurasi dan lokasi.** `core/config/env.dart` (`API_BASE_URL`, `CARTO_API_KEY`), `LocationService` (izin, `getLastKnownPosition`, stream dengan `distanceFilter` 10, penanganan ditolak/GPS mati).
+- [x] **T-07 Konfigurasi dan lokasi.** `core/config/env.dart` (`API_BASE_URL`, `STADIA_API_KEY`), `LocationService` (izin, `getLastKnownPosition`, stream dengan `distanceFilter` 10, penanganan ditolak/GPS mati).
   *Selesai jika:* provider posisi mengembalikan state jelas (tersedia, ditolak, menunggu).
-- [x] **T-08 Layar peta dasar.** `MapScreen` penuh layar, tile terang/gelap mengikuti tema (`DESIGN.md` bagian 2), atribusi, `GpsLayer` (titik + akurasi), tombol lokasiku, ingat posisi dan zoom terakhir, `wakelock` saat layar peta aktif, rotasi dimatikan. Atur cache tile sesuai `ARCHITECTURE.md` bagian 6 (masa segar <= 14 hari, ukuran kecil, pembersihan berkala > 21 hari) dan catat di Catatan hasil pemeriksaan apakah tile basi dibuang provider.
+- [x] **T-08 Layar peta dasar.** `MapScreen` penuh layar, tile terang/gelap mengikuti tema (`DESIGN.md` bagian 2), atribusi, `GpsLayer` (titik + akurasi), tombol lokasiku, ingat posisi dan zoom terakhir, `wakelock` saat layar peta aktif, rotasi dimatikan. Atur cache tile sesuai `ARCHITECTURE.md` bagian 6 (masa segar <= 7 hari, ukuran maks 100 MB, pembersihan berkala > 7 hari) dan catat di Catatan hasil pemeriksaan apakah tile basi dibuang provider.
   *Selesai jika:* peta terbuka di posisi terakhir, titik GPS tampil, tombol lokasiku memusatkan peta, dan tile yang sudah dilihat tetap tampil saat mode pesawat dinyalakan.
 - [x] **T-09 Layer marker.** `CategoryMarker` (`DESIGN.md` bagian 3), `SpotMarkersLayer` hanya untuk viewport + padding, cluster saat zoom < 15 (paket atau cluster grid sendiri), label nama saat zoom >= 15, debounce event kamera, `RepaintBoundary`.
   *Selesai jika:* dengan seed sementara 2.000 spot peta tetap mulus (seed hanya di build debug dan dihapus setelah uji).
@@ -112,7 +112,8 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
 - Package tambahan di luar daftar beserta alasannya:
 - Keputusan teknis penting:
   - Kebijakan file generate drift diabaikan (*.g.dart masuk .gitignore).
-  - T-08 Hasil pemeriksaan BuiltInMapCachingProvider: Tile basi (melewati overrideFreshAge 14 hari) tidak langsung dihapus secara fisik saat kedaluwarsa melainkan direvalidasi saat ada internet dan dipakai sebagai fallback saat offline. Untuk mematuhi batasan retensi CARTO maksimal 30 hari, TileCacheManager menerapkan pembersihan keras (destroy dengan deleteCache: true) berkala jika jeda sejak pembersihan terakhir > 21 hari.
+  - T-08 Hasil pemeriksaan BuiltInMapCachingProvider: Tile basi (melewati overrideFreshAge 7 hari) tidak langsung dihapus secara fisik saat kedaluwarsa melainkan direvalidasi saat ada internet dan dipakai sebagai fallback saat offline. Untuk mengurangi akumulasi tile lama, TileCacheManager menerapkan pembersihan keras (destroy dengan deleteCache: true) berkala jika jeda sejak pembersihan terakhir > 7 hari.
+  - Okt 2026: Penyedia tile diganti dari CARTO ke **Stadia Maps** (aliade_smooth / alidade_smooth_dark) karena tile CARTO tidak terjangkau dari jaringan pengguna (Connection reset by peer). Cache freshAge 7 hari, maxCacheSize 100 MB, cleanInterval 7 hari. Atribusi diperbarui ke "© Stadia Maps, © OpenMapTiles, © OpenStreetMap". Key diberikan lewat `--dart-define=STADIA_API_KEY=...`.
   - T-26 Panduan Deploy Vercel (Backend):
     1. Pengaturan Proyek Vercel:
        - Root Directory: `backend`

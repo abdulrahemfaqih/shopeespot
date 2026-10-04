@@ -132,6 +132,38 @@ void main() {
       expect(clusters.first.spotIds, containsAll(['spot-1', 'spot-2']));
     });
 
+    test(
+      'single unmerged spot keeps exact original coordinates (pure function)',
+      () {
+        final singleSpot = Spot(
+          id: 'spot-orig',
+          name: 'Spot Original',
+          category: Category.shopeefood,
+          latitude: -6.208812,
+          longitude: 106.845634,
+          createdAt: now,
+          updatedAt: now,
+        );
+
+        final clusters = computeMapClusters(
+          spots: [singleSpot],
+          minLat: -6.3,
+          maxLat: -6.1,
+          minLng: 106.7,
+          maxLng: 106.9,
+          zoom: 12.0,
+        );
+
+        expect(clusters.length, 1);
+        final item = clusters.first;
+        expect(item.isCluster, false);
+        expect(item.count, 1);
+        expect(item.spot?.id, 'spot-orig');
+        expect(item.latitude, equals(-6.208812));
+        expect(item.longitude, equals(106.845634));
+      },
+    );
+
     test('performance test with 2,000 seeded spots', () {
       final rng = Random(42);
       final seedSpots = List.generate(2000, (i) {
@@ -240,6 +272,49 @@ void main() {
       await tester.pump();
       expect(find.byType(CategoryMarker), findsOneWidget);
       expect(find.text('Warung A'), findsOneWidget);
+    });
+
+    testWidgets('marker bottom tip anchors at spot coordinate', (tester) async {
+      final now = DateTime.utc(2026, 10, 4, 10, 0);
+      const coord = LatLng(-6.2088, 106.8456);
+      final spots = [
+        Spot(
+          id: 'spot-1',
+          name: 'Warung A',
+          category: Category.shopeefood,
+          latitude: coord.latitude,
+          longitude: coord.longitude,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          home: Scaffold(
+            body: FlutterMap(
+              options: const MapOptions(
+                initialCenter: coord,
+                initialZoom: 16.0,
+              ),
+              children: [
+                Builder(
+                  builder: (context) => SpotMarkersLayer(
+                    spots: spots,
+                    camera: MapCamera.of(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      final mapCenter = tester.getCenter(find.byType(FlutterMap));
+      final markerRect = tester.getRect(find.byType(CategoryMarker));
+      expect(markerRect.bottomCenter, equals(mapCenter));
     });
   });
 }

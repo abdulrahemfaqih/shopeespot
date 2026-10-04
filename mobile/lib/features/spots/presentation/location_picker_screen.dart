@@ -40,11 +40,12 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   String _getTileUrl(Brightness brightness) {
-    final style = brightness == Brightness.dark ? 'dark_all' : 'light_all';
-    final keyParam = Env.cartoApiKey.isNotEmpty
-        ? '?key=${Env.cartoApiKey}'
-        : '';
-    return 'https://basemaps.cartocdn.com/rastertiles/$style/{z}/{x}/{y}{r}.png$keyParam';
+    final style = brightness == Brightness.dark
+        ? 'alidade_smooth_dark'
+        : 'alidade_smooth';
+    final key = Env.stadiaApiKey;
+    final keyParam = key.isNotEmpty ? '?api_key=$key' : '';
+    return 'https://tiles.stadiamaps.com/tiles/$style/{z}/{x}/{y}{r}.png$keyParam';
   }
 
   @override
@@ -85,18 +86,22 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           // 2. Fixed Pin at screen center (tip points exactly to center)
           Center(
             child: IgnorePointer(
-              child: Transform.translate(
-                offset: const Offset(0, -25.0),
-                child: CategoryMarker(
-                  category: widget.category,
-                  isSelected: true,
-                  showLabel: false,
+              child: FractionalTranslation(
+                translation: const Offset(0.0, -0.5),
+                child: SizedBox(
+                  width: 44.0,
+                  height: 50.0,
+                  child: CategoryMarker(
+                    category: widget.category,
+                    isSelected: true,
+                    showLabel: false,
+                  ),
                 ),
               ),
             ),
           ),
 
-          // 3. Top instruction banner
+          // 3. Top instruction banner with coordinates
           Positioned(
             top: MediaQuery.paddingOf(context).top + tokens.space16,
             left: tokens.space16,
@@ -114,22 +119,36 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   width: tokens.borderWidth,
                 ),
               ),
-              child: Text(
-                'Geser peta untuk mengatur posisi',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w500,
-                  color: tokens.textPrimary,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Geser peta untuk mengatur posisi',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w500,
+                      color: tokens.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: tokens.space4),
+                  Text(
+                    '${_currentCenter.latitude.toStringAsFixed(6)}, ${_currentCenter.longitude.toStringAsFixed(6)}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: tokens.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
 
-          // 4. CARTO and OSM Attribution
-          const Positioned(left: 0, bottom: 120.0, child: MapAttribution()),
+          // 4. Stadia Maps and OSM Attribution
+          const Positioned(left: 0, bottom: 88.0, child: MapAttribution()),
 
-          // 5. Bottom action sheet with coordinates and buttons
+          // 5. Bottom action bar with buttons
           Positioned(
             left: 0,
             right: 0,
@@ -148,34 +167,21 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 top: false,
                 child: Padding(
                   padding: EdgeInsets.all(tokens.space16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Row(
                     children: [
-                      Text(
-                        '${_currentCenter.latitude.toStringAsFixed(6)}, ${_currentCenter.longitude.toStringAsFixed(6)}',
-                        style: TextStyle(
-                          fontSize: 12.0,
-                          color: tokens.textSecondary,
+                      Expanded(
+                        child: AppButton.outline(
+                          label: 'Batal',
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
                       ),
-                      SizedBox(height: tokens.space12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppButton.outline(
-                              label: 'Batal',
-                              onPressed: () => Navigator.of(context).pop(),
-                            ),
-                          ),
-                          SizedBox(width: tokens.space12),
-                          Expanded(
-                            child: AppButton.primary(
-                              label: 'Simpan posisi ini',
-                              onPressed: () =>
-                                  Navigator.of(context).pop(_currentCenter),
-                            ),
-                          ),
-                        ],
+                      SizedBox(width: tokens.space12),
+                      Expanded(
+                        child: AppButton.primary(
+                          label: 'Simpan posisi ini',
+                          onPressed: () =>
+                              Navigator.of(context).pop(_currentCenter),
+                        ),
                       ),
                     ],
                   ),

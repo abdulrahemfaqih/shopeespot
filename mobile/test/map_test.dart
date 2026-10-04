@@ -49,7 +49,7 @@ void main() {
     });
 
     test(
-      'TileCacheManager updates last clean key if older than 21 days',
+      'TileCacheManager updates last clean key if older than 7 days',
       () async {
         final oldDate = DateTime.utc(2026, 8, 1);
         final currentDate = DateTime.utc(2026, 10, 4);
@@ -105,7 +105,10 @@ void main() {
         expect(find.byType(QuickPinFab), findsOneWidget);
         expect(find.byType(FilterBar), findsOneWidget);
         expect(find.byType(MapAttribution), findsOneWidget);
-        expect(find.text('© OpenStreetMap, © CARTO'), findsOneWidget);
+        expect(
+          find.text('© Stadia Maps, © OpenMapTiles, © OpenStreetMap'),
+          findsOneWidget,
+        );
 
         // Tap QuickPinFab opens SpotFormScreen
         await tester.tap(find.byType(QuickPinFab));

@@ -57,7 +57,7 @@ Kriteria: dari tap tombol hingga spot tersimpan butuh paling banyak mengisi nama
 - Titik posisi driver (GPS) dengan lingkaran akurasi.
 - Tombol "lokasiku" memusatkan peta ke posisi sekarang.
 - Posisi dan zoom terakhir diingat saat aplikasi dibuka lagi.
-- Atribusi peta (OpenStreetMap dan CARTO) selalu terlihat.
+- Atribusi peta (Stadia Maps, OpenMapTiles, OpenStreetMap) selalu terlihat.
 
 ### F3. Detail spot (bottom sheet)
 
@@ -153,7 +153,7 @@ Tema (Sistem, Terang, Gelap), aplikasi navigasi (Google Maps, Waze), status sink
 | GPS belum dapat | Quick Pin menunggu singkat lalu menawarkan mode atur posisi |
 | Tidak ada spot | Peta kosong dengan satu kalimat petunjuk di bawah |
 | Offline | Semua fitur jalan. Tidak ada banner mengganggu |
-| Tile belum pernah dilihat, atau sudah lama tidak dilihat (tile disimpan paling lama 30 hari sesuai aturan CARTO), saat offline | Area kosong abu, spot dan marker tetap tampil |
+| Tile belum pernah dilihat, atau sudah lama tidak dilihat (tile disimpan paling lama 7 hari sesuai pengaturan cache), saat offline | Area kosong abu, spot dan marker tetap tampil |
 | Sesi berakhir | Lihat F11 |
 | Jam sistem diubah | Order memakai waktu perangkat saat dicatat; tidak ada koreksi otomatis |
 

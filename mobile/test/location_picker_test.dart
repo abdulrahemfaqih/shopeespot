@@ -104,6 +104,22 @@ void main() {
 
       expect(pickedLocation, isNull);
     });
+
+    testWidgets('pin tip is anchored exactly at screen center', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          home: const LocationPickerScreen(
+            initialPosition: LatLng(-6.2088, 106.8456),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final screenCenter = tester.getCenter(find.byType(LocationPickerScreen));
+      final pinRect = tester.getRect(find.byType(CategoryMarker));
+      expect(pinRect.bottomCenter, equals(screenCenter));
+    });
   });
 
   group('SpotFormScreen location adjustment and last_verified_at update', () {

@@ -64,9 +64,9 @@ Pengecualian: teks atribusi peta 10 / 400.
 
 ## 2. Peta
 
-- Gaya terang: **CARTO Positron** (`light_all`). Gaya gelap: **CARTO Dark Matter** (`dark_all`). Mengikuti tema aktif.
+- Gaya terang: **Stadia Alidade Smooth** (`alidade_smooth`). Gaya gelap: **Stadia Alidade Smooth Dark** (`alidade_smooth_dark`). Mengikuti tema aktif.
 - Tile retina memakai `{r}` bila layar padat.
-- Atribusi "© OpenStreetMap, © CARTO" selalu terlihat, kiri bawah, 10 sp, `textSecondary`. Naik mengikuti sheet agar tidak tertutup.
+- Atribusi "© Stadia Maps, © OpenMapTiles, © OpenStreetMap" selalu terlihat, kiri bawah, 10 sp, `textSecondary`. Naik mengikuti sheet agar tidak tertutup.
 - Zoom awal 15 di posisi terakhir yang diingat. Zoom min 5, maks 19.
 - Rotasi peta dimatikan (utara selalu atas).
 
@@ -95,7 +95,7 @@ Peta mengisi seluruh layar (di belakang status bar). Elemen melayang di atasnya:
 │                              │
 │                       [ ◎ ]  │  ← tombol lokasiku 48 dp
 │ [ ☰ ]                 [ + ]  │  ← kiri: daftar (48 dp)   kanan: Quick Pin (FAB 56 dp)
-│ © OpenStreetMap, © CARTO     │
+│ © Stadia Maps, © OpenMapTiles, © OpenStreetMap     │
 └──────────────────────────────┘
 ```
 
