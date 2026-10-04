@@ -9,6 +9,7 @@ import '../../domain/clustering.dart';
 import 'filter_bar.dart';
 import 'gps_layer.dart';
 import 'map_empty_hint.dart';
+import 'map_key_missing_hint.dart';
 import 'map_overlay_controls.dart';
 import 'map_spot_detail_host.dart';
 import 'spot_markers_layer.dart';
@@ -91,13 +92,14 @@ class MainMapView extends StatelessWidget {
             onTap: (_, _) => onTapMap(),
           ),
           children: [
-            TileLayer(
-              urlTemplate: tileUrl(theme.brightness),
-              userAgentPackageName: 'com.example.shopeespot',
-              retinaMode: isRetina,
-              maxNativeZoom: 19,
-              maxZoom: 19,
-            ),
+            if (Env.stadiaApiKey.isNotEmpty)
+              TileLayer(
+                urlTemplate: tileUrl(theme.brightness),
+                userAgentPackageName: 'com.example.shopeespot',
+                retinaMode: isRetina,
+                maxNativeZoom: 19,
+                maxZoom: 19,
+              ),
             if (currentCamera != null)
               SpotMarkersLayer(
                 spots: spots,
@@ -117,6 +119,7 @@ class MainMapView extends StatelessWidget {
           onMyLocationPressed: onMyLocationPressed,
           onNearbyListPressed: onNearbyListPressed,
         ),
+        if (Env.stadiaApiKey.isEmpty) const MapKeyMissingHint(),
         if (allSpots.isEmpty && !isSheetOpen)
           MapEmptyHint(bottomOffset: tokens.space24 + 64.0),
         Positioned(

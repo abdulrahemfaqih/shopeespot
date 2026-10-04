@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shopeespot/app/theme/app_theme.dart';
+import 'package:shopeespot/core/config/env.dart';
 import 'package:shopeespot/core/db/app_database.dart';
 import 'package:shopeespot/core/location/location_provider.dart';
 import 'package:shopeespot/core/location/location_service.dart';
@@ -318,8 +319,13 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // SpotMarkersLayer and TileLayer both exist in Stack
-        expect(find.byType(TileLayer), findsOneWidget);
+        // SpotMarkersLayer and TileLayer (or missing key hint) both exist in Stack
+        if (Env.stadiaApiKey.isNotEmpty) {
+          expect(find.byType(TileLayer), findsOneWidget);
+        } else {
+          expect(find.text('Kunci peta belum diisi'), findsOneWidget);
+          expect(find.byType(TileLayer), findsNothing);
+        }
         expect(find.byType(SpotMarkersLayer), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());

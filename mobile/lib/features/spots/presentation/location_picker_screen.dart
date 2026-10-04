@@ -75,11 +75,12 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               },
             ),
             children: [
-              TileLayer(
-                urlTemplate: _getTileUrl(theme.brightness),
-                userAgentPackageName: 'com.example.shopeespot',
-                retinaMode: isRetina,
-              ),
+              if (Env.stadiaApiKey.isNotEmpty)
+                TileLayer(
+                  urlTemplate: _getTileUrl(theme.brightness),
+                  userAgentPackageName: 'com.example.shopeespot',
+                  retinaMode: isRetina,
+                ),
             ],
           ),
 

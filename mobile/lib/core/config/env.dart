@@ -6,8 +6,7 @@ class Env {
     defaultValue: 'https://shopeespot.vercel.app',
   );
 
-  static const String stadiaApiKey = String.fromEnvironment(
-    'STADIA_API_KEY',
-    defaultValue: 'b945793d-a0ae-4a69-9426-83b8a3c51181',
-  );
+  /// Stadia Maps API key injected via `--dart-define-from-file=env.json`.
+  /// Must not be committed or hardcoded in source control.
+  static const String stadiaApiKey = String.fromEnvironment('STADIA_API_KEY');
 }

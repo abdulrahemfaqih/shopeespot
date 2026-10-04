@@ -110,6 +110,7 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
 ## Catatan (diisi agent selama bekerja)
 
 - Package tambahan di luar daftar beserta alasannya:
+  - `flutter_launcher_icons` (dev_dependencies): generator ikon launcher semua ukuran dari satu gambar.
 - Keputusan teknis penting:
   - Kebijakan file generate drift diabaikan (*.g.dart masuk .gitignore).
   - T-08 Hasil pemeriksaan BuiltInMapCachingProvider: Tile basi (melewati overrideFreshAge 7 hari) tidak langsung dihapus secara fisik saat kedaluwarsa melainkan direvalidasi saat ada internet dan dipakai sebagai fallback saat offline. Untuk mengurangi akumulasi tile lama, TileCacheManager menerapkan pembersihan keras (destroy dengan deleteCache: true) berkala jika jeda sejak pembersihan terakhir > 7 hari.
@@ -162,6 +163,10 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
     - Verifikasi Akhir:
       - Mobile: `dart format` (115 files), `flutter analyze` (0 issue), `flutter test` (154 tests passed).
       - Backend: `gofmt` (bersih), `go vet ./...` (bersih), `go test ./...` (semua paket lolos).
+  - Penanganan Rahasia & Build Rilis Android:
+    - Key lama STADIA_API_KEY dianggap bocor dan sudah diganti oleh pemilik. Default value key dihapus dari kode sumber `mobile/lib/core/config/env.dart`.
+    - Konfigurasi rahasia `env.json` dijalankan lewat `--dart-define-from-file=env.json` dan telah diabaikan di `.gitignore` (`env.example.json` disediakan sebagai templat).
+    - Keystore rilis produksi belum ada; penandatanganan rilis menggunakan penandatanganan debug bawaan (debug signing) agar artefak rilis APK tetap dapat dibuat dan diuji tanpa membuat atau commit keystore baru.
 - Angka ukur performa (T-31):
   - Waktu ke peta tampil pertama dengan 2.000 spot di SQLite lokal: **849 ms** (Target PRD Bagian 8: < 1.000 ms).
   - Waktu tap QuickPin sampai form terbuka: **510 ms** (Target PRD Bagian 8: < 1.000 ms).

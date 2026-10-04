@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shopeespot/app/theme/app_theme.dart';
+import 'package:shopeespot/core/config/env.dart';
 import 'package:shopeespot/core/location/location_provider.dart';
 import 'package:shopeespot/core/location/location_service.dart';
 import 'package:shopeespot/core/time/clock.dart';
@@ -14,6 +15,7 @@ import 'package:shopeespot/features/map/presentation/map_screen.dart';
 import 'package:shopeespot/features/map/presentation/widgets/filter_bar.dart';
 import 'package:shopeespot/features/map/presentation/widgets/gps_layer.dart';
 import 'package:shopeespot/features/map/presentation/widgets/map_controls.dart';
+import 'package:shopeespot/features/map/presentation/widgets/map_key_missing_hint.dart';
 import 'package:shopeespot/features/map/presentation/widgets/quick_pin_fab.dart';
 import 'package:shopeespot/features/spots/presentation/spot_form_screen.dart';
 
@@ -99,7 +101,12 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(FlutterMap), findsOneWidget);
-        expect(find.byType(TileLayer), findsOneWidget);
+        if (Env.stadiaApiKey.isNotEmpty) {
+          expect(find.byType(TileLayer), findsOneWidget);
+        } else {
+          expect(find.text('Kunci peta belum diisi'), findsOneWidget);
+          expect(find.byType(TileLayer), findsNothing);
+        }
         expect(find.byType(GpsLayer), findsOneWidget);
         expect(find.byType(MyLocationButton), findsOneWidget);
         expect(find.byType(QuickPinFab), findsOneWidget);
@@ -155,6 +162,21 @@ void main() {
 
         expect(find.byType(CircleLayer), findsOneWidget);
         expect(find.byType(MarkerLayer), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'MapKeyMissingHint renders "Kunci peta belum diisi" correctly',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light(),
+            home: const Scaffold(body: Stack(children: [MapKeyMissingHint()])),
+          ),
+        );
+
+        expect(find.byType(MapKeyMissingHint), findsOneWidget);
+        expect(find.text('Kunci peta belum diisi'), findsOneWidget);
       },
     );
   });
