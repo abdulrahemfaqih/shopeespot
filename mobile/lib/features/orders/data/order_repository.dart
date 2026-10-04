@@ -33,6 +33,20 @@ class OrderRepository {
     return entries.map(_entryToDomain).toList();
   }
 
+  Future<List<OrderLog>> getActiveOrders() async {
+    final entries = await _db.orderDao.getActiveOrders();
+    return entries.map(_entryToDomain).toList();
+  }
+
+  Future<OrderLog?> getOrderById(String id) async {
+    final entry = await _db.orderDao.getOrderById(id);
+    return entry != null ? _entryToDomain(entry) : null;
+  }
+
+  Future<void> upsertOrder(OrderLog order) async {
+    await _db.orderDao.insertOrder(_domainToCompanion(order));
+  }
+
   Future<OrderLog> recordOrder({
     required String spotId,
     DateTime? orderedAt,

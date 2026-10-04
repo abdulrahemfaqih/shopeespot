@@ -34,6 +34,19 @@ class OrderDao extends DatabaseAccessor<AppDatabase> with _$OrderDaoMixin {
         .get();
   }
 
+  Future<List<OrderEntry>> getActiveOrders() {
+    return (select(orders)
+          ..where((tbl) => tbl.deletedAt.isNull())
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.orderedAt)]))
+        .get();
+  }
+
+  Future<OrderEntry?> getOrderById(String id) {
+    return (select(
+      orders,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+  }
+
   Future<void> insertOrder(OrdersCompanion order) {
     return into(orders).insert(order, mode: InsertMode.insertOrReplace);
   }

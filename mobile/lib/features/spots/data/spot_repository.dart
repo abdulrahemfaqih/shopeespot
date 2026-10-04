@@ -128,6 +128,10 @@ class SpotRepository {
     return _db.spotDao.markClean(id, updatedAt);
   }
 
+  Future<void> upsertSpot(Spot spot) async {
+    await _db.spotDao.insertSpot(_domainToCompanion(spot));
+  }
+
   Future<void> upsertFromSync(List<Spot> spots) async {
     await _db.batch((batch) {
       for (final spot in spots) {

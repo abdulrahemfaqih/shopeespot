@@ -65,9 +65,9 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
 
 ## Fase 5: Pengaturan dan cadangan
 
-- [ ] **T-20 Pengaturan dan tema.** `SettingsScreen` (Tema Sistem/Terang/Gelap, Navigasi Google Maps/Waze, Versi) memakai `shared_preferences`; tema gelap mengganti tile ke Dark Matter. Bagian Sinkronisasi dan Akun diisi di T-30.
+- [x] **T-20 Pengaturan dan tema.** `SettingsScreen` (Tema Sistem/Terang/Gelap, Navigasi Google Maps/Waze, Versi) memakai `shared_preferences`; tema gelap mengganti tile ke Dark Matter. Bagian Sinkronisasi dan Akun diisi di T-30.
   *Selesai jika:* perubahan tema dan navigasi langsung berlaku dan bertahan setelah restart.
-- [ ] **T-21 Ekspor/impor JSON.** `BackupService` sesuai `ARCHITECTURE.md` bagian 11: ekspor (semua atau hanya spot) lewat share, impor lewat file picker dengan aturan gabung dan ringkasan (ditambah, diperbarui, dilewati).
+- [x] **T-21 Ekspor/impor JSON.** `BackupService` sesuai `ARCHITECTURE.md` bagian 11: ekspor (semua atau hanya spot) lewat share, impor lewat file picker dengan aturan gabung dan ringkasan (ditambah, diperbarui, dilewati).
   *Selesai jika:* ekspor lalu impor di DB kosong memulihkan data; tes `backup_format` lolos.
 
 > **Titik pakai pertama:** setelah Fase 5 aplikasi sudah lengkap untuk dipakai offline di lapangan.

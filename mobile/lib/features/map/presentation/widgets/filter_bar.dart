@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/tokens.dart';
 import '../../../../core/widgets/app_chip.dart';
+import '../../../settings/presentation/settings_screen.dart';
 import '../../domain/map_filter.dart';
 import '../map_filter_provider.dart';
 
@@ -53,6 +54,42 @@ class FilterBar extends ConsumerWidget {
             label: 'Ramai 30 mnt lagi',
             isSelected: filter.busy == BusyFilter.busy30Min,
             onTap: () => notifier.setBusy(BusyFilter.busy30Min),
+          ),
+          Container(
+            height: 24.0,
+            width: tokens.borderWidth,
+            color: tokens.border,
+            margin: EdgeInsets.symmetric(horizontal: tokens.space8),
+          ),
+          Container(
+            width: 40.0,
+            height: 40.0,
+            decoration: BoxDecoration(
+              color: tokens.surface,
+              borderRadius: BorderRadius.circular(tokens.radiusSm),
+              border: Border.all(
+                color: tokens.border,
+                width: tokens.borderWidth,
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(tokens.radiusSm),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  );
+                },
+                child: Center(
+                  child: Icon(
+                    Icons.settings_outlined,
+                    size: 20.0,
+                    color: tokens.textPrimary,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
