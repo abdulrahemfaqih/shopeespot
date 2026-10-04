@@ -1,0 +1,37 @@
+# Secrets and Environment
+.env
+*.env
+**/.env
+**/*.env
+!**/.env.example
+*.keystore
+*.jks
+**/*.keystore
+**/*.jks
+.env.json
+**/.env.json
+
+# IDE and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Drift generated code (consistent policy: generated files are ignored)
+*.g.dart
+**/*.g.dart
+
+# Flutter / Mobile
+mobile/.dart_tool/
+mobile/.pub/
+mobile/.pub-cache/
+mobile/build/
+mobile/android/app/debug/
+mobile/android/app/profile/
+mobile/android/app/release/
+
+# Go / Backend
+backend/bin/
+backend/dist/
+backend/tmp/
