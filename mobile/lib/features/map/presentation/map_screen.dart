@@ -4,21 +4,16 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import '../../../app/theme/tokens.dart';
-import '../../../core/config/env.dart';
+
 import '../../../core/location/location_provider.dart';
 import '../../../core/location/location_service.dart';
 import '../../spots/domain/spot.dart';
 import '../../spots/presentation/spot_form_screen.dart';
 import '../../spots/presentation/spots_providers.dart';
-import 'map_controller.dart';
-import 'widgets/filter_bar.dart';
-import 'widgets/gps_layer.dart';
-import 'widgets/map_controls.dart';
-import 'widgets/quick_pin_fab.dart';
 import '../../spots/presentation/widgets/nearby_sheet.dart';
-import '../../spots/presentation/widgets/spot_detail_sheet.dart';
-import 'widgets/spot_markers_layer.dart';
+import '../domain/clustering.dart';
+import 'map_controller.dart';
+import 'widgets/main_map_view.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -44,17 +39,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Future<void> _enableWakelock() async {
     try {
       await WakelockPlus.enable();
-    } catch (_) {
-      // Gracefully ignore on platforms/environments without wakelock support
-    }
+    } catch (_) {}
   }
 
   Future<void> _disableWakelock() async {
     try {
       await WakelockPlus.disable();
-    } catch (_) {
-      // Gracefully ignore
-    }
+    } catch (_) {}
   }
 
   @override
@@ -67,7 +58,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   void _onPositionChanged(MapCamera camera, bool hasGesture) {
     _currentCamera = camera;
-
     if (!hasGesture) return;
 
     _debounceTimer?.cancel();
@@ -76,6 +66,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           .read(mapCameraProvider.notifier)
           .saveCameraPosition(camera.center, camera.zoom);
     });
+  }
+
+  void _showPermissionSnackBar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Izin lokasi diperlukan untuk fitur ini.'),
+        action: SnackBarAction(
+          label: 'Buka pengaturan',
+          onPressed: () {
+            ref.read(locationServiceProvider).openAppSettings();
+          },
+        ),
+      ),
+    );
   }
 
   void _onMyLocationPressed() {
@@ -88,23 +92,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         _mapController.camera.zoom.clamp(14.0, 18.0),
       );
     } else if (locationState is LocationDenied) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Izin lokasi diperlukan untuk fitur ini.'),
-          action: SnackBarAction(
-            label: 'Pengaturan',
-            onPressed: () {
-              ref.read(locationServiceProvider).openAppSettings();
-            },
-          ),
-        ),
-      );
+      _showPermissionSnackBar();
     } else if (locationState is LocationServiceDisabled) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('GPS belum aktif. Aktifkan lokasi di perangkat.'),
           action: SnackBarAction(
-            label: 'Pengaturan',
+            label: 'Buka pengaturan',
             onPressed: () {
               ref.read(locationServiceProvider).openLocationSettings();
             },
@@ -127,19 +121,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       lat = locationState.location.latitude;
       lng = locationState.location.longitude;
     } else if (locationState is LocationDenied) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Izin lokasi diperlukan untuk mengambil posisi otomatis.',
-          ),
-          action: SnackBarAction(
-            label: 'Pengaturan',
-            onPressed: () {
-              ref.read(locationServiceProvider).openAppSettings();
-            },
-          ),
-        ),
-      );
+      _showPermissionSnackBar();
       return;
     } else {
       final lastPos = await ref
@@ -173,31 +155,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-  String _getTileUrl(Brightness brightness) {
-    final style = brightness == Brightness.dark ? 'dark_all' : 'light_all';
-    final keyParam = Env.cartoApiKey.isNotEmpty
-        ? '?key=${Env.cartoApiKey}'
-        : '';
-    return 'https://basemaps.cartocdn.com/rastertiles/$style/{z}/{x}/{y}{r}.png$keyParam';
-  }
-
   Future<void> _onNearbyListPressed() async {
-    if (_selectedSpot != null) {
-      setState(() {
-        _selectedSpot = null;
-        _sheetExtent = 0.0;
-      });
-    }
-
     final selectedSpot = await showModalBottomSheet<Spot>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      elevation: 0,
       builder: (sheetContext) => NearbySheet(
-        onSpotSelected: (spot) {
-          Navigator.of(sheetContext).pop(spot);
-        },
+        onSpotSelected: (spot) => Navigator.of(sheetContext).pop(spot),
       ),
     );
 
@@ -213,14 +177,24 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
+  void _onClusterTap(MapClusterItem cluster, double initialZoom) {
+    final targetZoom = ((_currentCamera?.zoom ?? initialZoom) + 2.0).clamp(
+      5.0,
+      19.0,
+    );
+    _mapController.move(
+      LatLng(cluster.latitude, cluster.longitude),
+      targetZoom,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cameraState = ref.watch(mapCameraProvider);
     final spots = ref.watch(filteredSpotsProvider);
-    final theme = Theme.of(context);
-    final tokens = context.tokens;
+    final allSpots =
+        ref.watch(activeSpotsStreamProvider).value ?? const <Spot>[];
 
-    // Keep _selectedSpot in sync if it was edited or deleted
     if (_selectedSpot != null) {
       final current = spots.where((s) => s.id == _selectedSpot!.id).firstOrNull;
       if (current == null) {
@@ -244,166 +218,64 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       child: Scaffold(
         body: cameraState.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => _buildMap(
-            initialCenter: const LatLng(defaultLat, defaultLng),
-            initialZoom: defaultZoom,
+          error: (error, stackTrace) => _renderMap(
+            center: const LatLng(defaultLat, defaultLng),
+            zoom: defaultZoom,
             spots: spots,
-            theme: theme,
-            tokens: tokens,
+            allSpots: allSpots,
           ),
-          data: (savedCamera) => _buildMap(
-            initialCenter: savedCamera.center,
-            initialZoom: savedCamera.zoom,
+          data: (savedCamera) => _renderMap(
+            center: savedCamera.center,
+            zoom: savedCamera.zoom,
             spots: spots,
-            theme: theme,
-            tokens: tokens,
+            allSpots: allSpots,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildMap({
-    required LatLng initialCenter,
-    required double initialZoom,
+  Widget _renderMap({
+    required LatLng center,
+    required double zoom,
     required List<Spot> spots,
-    required ThemeData theme,
-    required AppTokens tokens,
+    required List<Spot> allSpots,
   }) {
-    final isRetina = MediaQuery.of(context).devicePixelRatio > 1.5;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSheetOpen = _selectedSpot != null;
-    final sheetOffset = isSheetOpen ? _sheetExtent * screenHeight : 0.0;
-    final hideControls = isSheetOpen && _sheetExtent > 0.5;
-
-    return Stack(
-      children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            initialCenter: initialCenter,
-            initialZoom: initialZoom,
-            minZoom: 5.0,
-            maxZoom: 19.0,
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-            ),
-            onMapReady: () {
-              setState(() {
-                _currentCamera = _mapController.camera;
-              });
-            },
-            onPositionChanged: (camera, hasGesture) {
-              setState(() {
-                _onPositionChanged(camera, hasGesture);
-              });
-            },
-            onTap: (tapPosition, point) {
-              if (_selectedSpot != null) {
-                setState(() {
-                  _selectedSpot = null;
-                  _sheetExtent = 0.0;
-                });
-              }
-            },
-          ),
-          children: [
-            TileLayer(
-              urlTemplate: _getTileUrl(theme.brightness),
-              userAgentPackageName: 'com.example.shopeespot',
-              retinaMode: isRetina,
-            ),
-            if (_currentCamera != null)
-              SpotMarkersLayer(
-                spots: spots,
-                camera: _currentCamera!,
-                selectedSpotId: _selectedSpot?.id,
-                onSpotTap: (spot) {
-                  setState(() {
-                    _selectedSpot = spot;
-                    _sheetExtent = 0.28;
-                  });
-                },
-                onClusterTap: (cluster) {
-                  final targetZoom =
-                      ((_currentCamera?.zoom ?? initialZoom) + 2.0).clamp(
-                        5.0,
-                        19.0,
-                      );
-                  _mapController.move(
-                    LatLng(cluster.latitude, cluster.longitude),
-                    targetZoom,
-                  );
-                },
-              ),
-            const GpsLayer(),
-          ],
-        ),
-        if (!hideControls) ...[
-          // Quick Pin FAB (floating right bottom)
-          Positioned(
-            right: tokens.space16,
-            bottom: tokens.space24 + sheetOffset,
-            child: QuickPinFab(onPressed: _onQuickPinPressed),
-          ),
-          // My Location Button (floating right, above Quick Pin FAB)
-          Positioned(
-            right: tokens.space16,
-            bottom: tokens.space24 + 56.0 + tokens.space12 + sheetOffset,
-            child: MyLocationButton(onPressed: _onMyLocationPressed),
-          ),
-          // Nearby List Button (floating left bottom)
-          Positioned(
-            left: tokens.space16,
-            bottom: tokens.space24 + sheetOffset,
-            child: NearbyListButton(onPressed: _onNearbyListPressed),
-          ),
-        ],
-        // CARTO and OSM Attribution (always visible bottom left)
-        Positioned(
-          left: 0,
-          bottom: (isSheetOpen && !hideControls) ? 8.0 + sheetOffset : 8.0,
-          child: const MapAttribution(),
-        ),
-        // Filter Bar (floating top, safeArea + 8)
-        Positioned(
-          top: MediaQuery.paddingOf(context).top + tokens.space8,
-          left: 0,
-          right: 0,
-          child: const FilterBar(),
-        ),
-        // Detail Sheet
-        if (_selectedSpot != null)
-          Positioned.fill(
-            child: NotificationListener<DraggableScrollableNotification>(
-              onNotification: (notification) {
-                setState(() {
-                  _sheetExtent = notification.extent;
-                });
-                return false;
-              },
-              child: DraggableScrollableSheet(
-                initialChildSize: 0.28,
-                minChildSize: 0.15,
-                maxChildSize: 0.75,
-                snap: true,
-                snapSizes: const [0.28, 0.75],
-                builder: (context, scrollController) {
-                  return SpotDetailSheet(
-                    spot: _selectedSpot!,
-                    scrollController: scrollController,
-                    onClose: () {
-                      setState(() {
-                        _selectedSpot = null;
-                        _sheetExtent = 0.0;
-                      });
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-      ],
+    return MainMapView(
+      mapController: _mapController,
+      initialCenter: center,
+      initialZoom: zoom,
+      spots: spots,
+      allSpots: allSpots,
+      selectedSpot: _selectedSpot,
+      sheetExtent: _sheetExtent,
+      currentCamera: _currentCamera,
+      onMapReady: (cam) => setState(() => _currentCamera = cam),
+      onPositionChanged: (cam, gesture) =>
+          setState(() => _onPositionChanged(cam, gesture)),
+      onTapMap: () {
+        if (_selectedSpot != null) {
+          setState(() {
+            _selectedSpot = null;
+            _sheetExtent = 0.0;
+          });
+        }
+      },
+      onSpotTap: (spot) {
+        setState(() {
+          _selectedSpot = spot;
+          _sheetExtent = 0.28;
+        });
+      },
+      onClusterTap: (cluster) => _onClusterTap(cluster, zoom),
+      onQuickPinPressed: _onQuickPinPressed,
+      onMyLocationPressed: _onMyLocationPressed,
+      onNearbyListPressed: _onNearbyListPressed,
+      onDetailExtentChanged: (extent) => setState(() => _sheetExtent = extent),
+      onDetailClose: () => setState(() {
+        _selectedSpot = null;
+        _sheetExtent = 0.0;
+      }),
     );
   }
 }

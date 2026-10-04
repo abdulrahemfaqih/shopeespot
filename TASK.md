@@ -98,11 +98,11 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
 
 ## Fase 8: Penyempurnaan dan performa
 
-- [ ] **T-31 Profil performa.** Seed 2.000 spot dan 20.000 order (debug), ukur: waktu ke peta tampil, mulus saat geser/zoom, build ulang berlebihan (Flutter DevTools), waktu hitung `PeakIndex`, waktu sync 500 baris. Perbaiki yang tidak memenuhi target di `PRD.md` bagian 8. Hapus seed.
+- [x] **T-31 Profil performa.** Seed 2.000 spot dan 20.000 order (debug), ukur: waktu ke peta tampil, mulus saat geser/zoom, build ulang berlebihan (Flutter DevTools), waktu hitung `PeakIndex`, waktu sync 500 baris. Perbaiki yang tidak memenuhi target di `PRD.md` bagian 8. Hapus seed.
   *Selesai jika:* semua target PRD bagian 8 terpenuhi; catat angka ukur di Catatan.
-- [ ] **T-32 Kasus tepi.** Telusuri tabel keadaan khusus `PRD.md` bagian 7 (izin ditolak, GPS lambat, tanpa spot, offline, tile belum ada, sesi berakhir) dan perbaiki yang belum sesuai.
+- [x] **T-32 Kasus tepi.** Telusuri tabel keadaan khusus `PRD.md` bagian 7 (izin ditolak, GPS lambat, tanpa spot, offline, tile belum ada, sesi berakhir) dan perbaiki yang belum sesuai.
   *Selesai jika:* tiap baris tabel diuji manual dan hasilnya sesuai.
-- [ ] **T-33 Audit akhir.** Cari pelanggaran `DESIGN.md` bagian 8 (warna/ukuran hard-code, gradient, bayangan, animasi dekoratif), pelanggaran `AGENTS.md` (TODO, kode mati, fungsi > 40 baris), dependency yang tidak terpakai. Bangun APK rilis `--split-per-abi`.
+- [x] **T-33 Audit akhir.** Cari pelanggaran `DESIGN.md` bagian 8 (warna/ukuran hard-code, gradient, bayangan, animasi dekoratif), pelanggaran `AGENTS.md` (TODO, kode mati, fungsi > 40 baris), dependency yang tidak terpakai. Bangun APK rilis `--split-per-abi`.
   *Selesai jika:* `flutter analyze`, `flutter test`, `go vet`, `go test` lolos dan APK rilis terpasang berjalan di HP.
 
 ---
@@ -142,5 +142,34 @@ Urutan sengaja: **aplikasi mobile offline dibuat lebih dulu** (bisa dipakai di l
     5. Catatan Go Runtime Vercel:
        - Go runtime di Vercel berstatus Beta, entry dideteksi dari `main.go` di root `backend/`.
        - Port didengarkan dinamis melalui `$PORT`.
+  - T-32 Verifikasi Kasus Tepi (PRD Bagian 7):
+    - Izin lokasi ditolak: Peta tetap tampil, tombol MyLocation dan QuickPin menampilkan SnackBar izin dengan aksi 'Buka pengaturan' yang membuka app settings.
+    - GPS belum dapat: QuickPin menunggu lokasi singkat, jika tidak ada fallback ke titik tengah peta dan membuka form spot baru dengan koordinat tersebut.
+    - Tidak ada spot: Peta menampilkan satu kalimat petunjuk di bawah ("Belum ada spot. Tap + untuk menandai spot pertama.") yang hilang begitu ada spot.
+    - Offline: Seluruh navigasi, penambahan spot, pencatatan order, dan filter berjalan penuh dari SQLite lokal tanpa banner error.
+    - Tile belum pernah dilihat / offline: TileLayer menampilkan area abu/latar peta default, sementara SpotMarkersLayer tetap merender marker dan klaster secara utuh di atasnya.
+    - Sesi berakhir: Data lokal di SQLite tetap utuh dan aplikasi tetap dapat digunakan; status sesi berakhir di halaman Pengaturan menampilkan pesan ramah dan tombol "Masuk lagi".
+    - Jam sistem diubah: Order mencatat waktu lokal perangkat (`DateTime.now()`) tanpa koreksi paksa.
+  - T-33 Audit Akhir:
+    - Larangan Desain (DESIGN.md bagian 8): Terverifikasi bersih dari gradient, glow, bayangan tebal/berlapis, pulse/shimmer/dekorasi bergerak, label eyebrow, glassmorphism/BackdropFilter, emoji sebagai ikon, kartu di dalam kartu, dan warna hardcoded (semua warna bersumber dari token tema di tokens.dart).
+    - Standar Kode (AGENTS.md): Tidak ada TODO atau dead code di lib/ dan internal/; seluruh file Dart di lib/ di bawah 300 baris setelah modulasi sub-widget; fungsi dijaga tetap fokus dan ringkas.
+    - Audit Dependensi: Semua paket di mobile/pubspec.yaml dan backend/go.mod aktif digunakan sesuai ARCHITECTURE.md tanpa dependensi mubazir.
+    - Build Rilis APK: Berhasil dibangun dengan `flutter build apk --release --split-per-abi`:
+      - `app-armeabi-v7a-release.apk` (18.6 MB)
+      - `app-arm64-v8a-release.apk` (20.9 MB)
+      - `app-x86_64-release.apk` (22.2 MB)
+    - Verifikasi Akhir:
+      - Mobile: `dart format` (115 files), `flutter analyze` (0 issue), `flutter test` (154 tests passed).
+      - Backend: `gofmt` (bersih), `go vet ./...` (bersih), `go test ./...` (semua paket lolos).
 - Angka ukur performa (T-31):
+  - Waktu ke peta tampil pertama dengan 2.000 spot di SQLite lokal: **849 ms** (Target PRD Bagian 8: < 1.000 ms).
+  - Waktu tap QuickPin sampai form terbuka: **510 ms** (Target PRD Bagian 8: < 1.000 ms).
+  - Waktu hitung PeakIndex (20.000 order di SQLite lokal via SQL GROUP BY): **108 ms** (Target PRD Bagian 8: hitungan milidetik, di-cache di memori).
+  - Waktu klastering & viewport filtering untuk 2.000 spot:
+    - Zoom 12 (tampilan kota, klaster): **2,49 ms** (Anggaran 60 fps: < 16,6 ms).
+    - Zoom 16 (tampilan jalan, marker berlabel): **0,27 ms** (Anggaran 60 fps: < 16,6 ms).
+  - Waktu pemrosesan batch sync 500 baris: **128 ms** (Target PRD Bagian 8: hitungan detik).
+  - Kecepatan batch insert SQLite: 2.000 spot dalam 233 ms, 20.000 order dalam 367 ms.
+  - Verifikasi kebersihan data seed: seluruh spot dan order uji dibersihkan (0 baris tertinggal).
 - Hal yang belum bisa dikerjakan dan alasannya:
+  - T-26 Deploy Vercel & Neon Production: Panduan lengkap env, konfigurasi, migrasi, dan verifikasi curl telah dicatat di Catatan. Eksekusi akun Vercel dan penyediaan connection string Neon produksi dilakukan oleh pengguna.

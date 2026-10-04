@@ -8,6 +8,6 @@ class Env {
 
   static const String cartoApiKey = String.fromEnvironment(
     'CARTO_API_KEY',
-    defaultValue: '',
+    defaultValue: 'cb1_4940_1_cc980a6361494a0ef3e15f93',
   );
 }

@@ -10,6 +10,7 @@ import 'location_picker_screen.dart';
 import 'spots_providers.dart';
 import 'widgets/category_selector.dart';
 import 'widgets/peak_range_editor.dart';
+import 'widgets/spot_peak_hours_section.dart';
 
 class SpotFormScreen extends ConsumerStatefulWidget {
   const SpotFormScreen({
@@ -148,6 +149,26 @@ class _SpotFormScreenState extends ConsumerState<SpotFormScreen> {
     }
   }
 
+  InputDecoration _inputDecoration(String hint, AppTokens tokens) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(tokens.radiusSm),
+      borderSide: BorderSide(color: tokens.border, width: tokens.borderWidth),
+    );
+    return InputDecoration(
+      hintText: hint,
+      counterText: '',
+      contentPadding: EdgeInsets.all(tokens.space12),
+      border: border,
+      enabledBorder: border,
+      focusedBorder: border.copyWith(
+        borderSide: BorderSide(
+          color: tokens.actionFill,
+          width: tokens.borderWidth,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
@@ -166,7 +187,6 @@ class _SpotFormScreenState extends ConsumerState<SpotFormScreen> {
         child: ListView(
           padding: EdgeInsets.all(tokens.space16),
           children: [
-            // 1. Nama
             Text(
               'Nama spot',
               style: TextStyle(
@@ -180,35 +200,7 @@ class _SpotFormScreenState extends ConsumerState<SpotFormScreen> {
               controller: _nameController,
               maxLength: 80,
               textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                hintText: 'Nama tempat atau resto',
-                counterText: '',
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: tokens.space12,
-                  vertical: tokens.space12,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(tokens.radiusSm),
-                  borderSide: BorderSide(
-                    color: tokens.border,
-                    width: tokens.borderWidth,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(tokens.radiusSm),
-                  borderSide: BorderSide(
-                    color: tokens.border,
-                    width: tokens.borderWidth,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(tokens.radiusSm),
-                  borderSide: BorderSide(
-                    color: tokens.actionFill,
-                    width: tokens.borderWidth,
-                  ),
-                ),
-              ),
+              decoration: _inputDecoration('Nama tempat atau resto', tokens),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Nama spot wajib diisi';
@@ -220,8 +212,6 @@ class _SpotFormScreenState extends ConsumerState<SpotFormScreen> {
               },
             ),
             SizedBox(height: tokens.space16),
-
-            // 2. Kategori
             Text(
               'Kategori',
               style: TextStyle(
@@ -236,77 +226,13 @@ class _SpotFormScreenState extends ConsumerState<SpotFormScreen> {
               onChanged: (cat) => setState(() => _category = cat),
             ),
             SizedBox(height: tokens.space16),
-
-            // 3. Jam ramai manual
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Jam ramai manual',
-                  style: TextStyle(
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w600,
-                    color: tokens.textSecondary,
-                  ),
-                ),
-                AppButton.text(
-                  label: '+ Tambah jam',
-                  onPressed: _onAddPeakRange,
-                ),
-              ],
+            SpotPeakHoursSection(
+              peakHours: _peakHours,
+              onAdd: _onAddPeakRange,
+              onEdit: _onEditPeakRange,
+              onRemove: (range) => setState(() => _peakHours.remove(range)),
             ),
-            if (_peakHours.isEmpty)
-              Text(
-                'Belum ada jam ramai manual',
-                style: TextStyle(fontSize: 13.0, color: tokens.textSecondary),
-              )
-            else
-              ..._peakHours.map((range) {
-                return Container(
-                  margin: EdgeInsets.symmetric(vertical: tokens.space4),
-                  decoration: BoxDecoration(
-                    color: tokens.surface,
-                    borderRadius: BorderRadius.circular(tokens.radiusSm),
-                    border: Border.all(
-                      color: tokens.border,
-                      width: tokens.borderWidth,
-                    ),
-                  ),
-                  child: InkWell(
-                    onTap: () => _onEditPeakRange(range),
-                    borderRadius: BorderRadius.circular(tokens.radiusSm),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: tokens.space12,
-                        vertical: tokens.space8,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '${_formatDays(range.days)}: ${_formatMinutes(range.start)} - ${_formatMinutes(range.end)}',
-                              style: TextStyle(
-                                fontSize: 13.0,
-                                color: tokens.textPrimary,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 18.0),
-                            onPressed: () {
-                              setState(() => _peakHours.remove(range));
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
             SizedBox(height: tokens.space16),
-
-            // 4. Catatan lapangan
             Text(
               'Catatan lapangan',
               style: TextStyle(
@@ -320,31 +246,9 @@ class _SpotFormScreenState extends ConsumerState<SpotFormScreen> {
               controller: _notesController,
               maxLength: 500,
               maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Contoh: Parkir di samping gang, pesanan cepat siap',
-                counterText: '',
-                contentPadding: EdgeInsets.all(tokens.space12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(tokens.radiusSm),
-                  borderSide: BorderSide(
-                    color: tokens.border,
-                    width: tokens.borderWidth,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(tokens.radiusSm),
-                  borderSide: BorderSide(
-                    color: tokens.border,
-                    width: tokens.borderWidth,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(tokens.radiusSm),
-                  borderSide: BorderSide(
-                    color: tokens.actionFill,
-                    width: tokens.borderWidth,
-                  ),
-                ),
+              decoration: _inputDecoration(
+                'Contoh: Parkir di samping gang, pesanan cepat siap',
+                tokens,
               ),
               validator: (value) {
                 if (value != null && value.trim().length > 500) {
@@ -354,8 +258,6 @@ class _SpotFormScreenState extends ConsumerState<SpotFormScreen> {
               },
             ),
             SizedBox(height: tokens.space16),
-
-            // 5. Lokasi
             Text(
               'Lokasi',
               style: TextStyle(
@@ -389,36 +291,5 @@ class _SpotFormScreenState extends ConsumerState<SpotFormScreen> {
         ),
       ),
     );
-  }
-
-  static String _formatMinutes(int minutes) {
-    final h = (minutes ~/ 60).toString().padLeft(2, '0');
-    final m = (minutes % 60).toString().padLeft(2, '0');
-    return '$h:$m';
-  }
-
-  static String _formatDays(List<int> days) {
-    if (days.length == 7) return 'Setiap hari';
-    if (days.length == 5 &&
-        days.contains(1) &&
-        days.contains(2) &&
-        days.contains(3) &&
-        days.contains(4) &&
-        days.contains(5)) {
-      return 'Hari kerja';
-    }
-    if (days.length == 2 && days.contains(6) && days.contains(7)) {
-      return 'Akhir pekan';
-    }
-    const dayNames = {
-      1: 'Sen',
-      2: 'Sel',
-      3: 'Rab',
-      4: 'Kam',
-      5: 'Jum',
-      6: 'Sab',
-      7: 'Min',
-    };
-    return days.map((d) => dayNames[d] ?? '$d').join(', ');
   }
 }

@@ -16,6 +16,7 @@ import '../../../peak/presentation/peak_provider.dart';
 import '../../domain/spot.dart';
 import '../spot_form_screen.dart';
 import '../spots_providers.dart';
+import 'spot_detail_sections.dart';
 
 class SpotDetailSheet extends ConsumerWidget {
   const SpotDetailSheet({
@@ -32,57 +33,6 @@ class SpotDetailSheet extends ConsumerWidget {
   final VoidCallback? onRecordOrder;
   final VoidCallback? onNavigate;
   final ScrollController? scrollController;
-
-  static String formatVerificationDate(DateTime? dt) {
-    if (dt == null) return 'Belum diverifikasi';
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-    final local = dt.toLocal();
-    return 'Terakhir diverifikasi ${local.day} ${months[local.month - 1]} ${local.year}';
-  }
-
-  static String formatTime(int minutes) {
-    final h = (minutes ~/ 60).toString().padLeft(2, '0');
-    final m = (minutes % 60).toString().padLeft(2, '0');
-    return '$h:$m';
-  }
-
-  static String formatDays(List<int> days) {
-    if (days.length == 7) return 'Setiap hari';
-    if (days.length == 5 &&
-        days.contains(1) &&
-        days.contains(2) &&
-        days.contains(3) &&
-        days.contains(4) &&
-        days.contains(5)) {
-      return 'Hari kerja';
-    }
-    if (days.length == 2 && days.contains(6) && days.contains(7)) {
-      return 'Akhir pekan';
-    }
-    const dayNames = {
-      1: 'Sen',
-      2: 'Sel',
-      3: 'Rab',
-      4: 'Kam',
-      5: 'Jum',
-      6: 'Sab',
-      7: 'Min',
-    };
-    return days.map((d) => dayNames[d] ?? '$d').join(', ');
-  }
 
   Future<void> _onRecordOrder(BuildContext context, WidgetRef ref) async {
     if (onRecordOrder != null) {
@@ -138,6 +88,7 @@ class SpotDetailSheet extends ConsumerWidget {
       onNavigate!();
       return;
     }
+
     final app = ref.read(navigationAppProvider);
     final launcher = ref.read(navigationLauncherProvider);
     final success = await launcher.launch(
@@ -236,7 +187,6 @@ class SpotDetailSheet extends ConsumerWidget {
           controller: scrollController,
           padding: EdgeInsets.zero,
           children: [
-            // Handle drag bar (32 x 4 dp)
             Center(
               child: Container(
                 margin: EdgeInsets.only(
@@ -251,8 +201,6 @@ class SpotDetailSheet extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // Ringkas Section
             Padding(
               padding: EdgeInsets.symmetric(horizontal: tokens.space16),
               child: Column(
@@ -285,8 +233,6 @@ class SpotDetailSheet extends ConsumerWidget {
                     ),
                   ),
                   SizedBox(height: tokens.space16),
-
-                  // Button row: Dapat order di sini (melebar), Arahkan, Edit
                   Row(
                     children: [
                       Expanded(
@@ -311,136 +257,10 @@ class SpotDetailSheet extends ConsumerWidget {
                 ],
               ),
             ),
-
-            // Diperluas Section (separated by 1 dp divider, no cards in cards)
-            Divider(
-              color: tokens.border,
-              height: tokens.borderWidth,
-              thickness: tokens.borderWidth,
-            ),
-
-            // 1. Hari ini: N order
-            Padding(
-              padding: EdgeInsets.all(tokens.space16),
-              child: Text(
-                'Hari ini: ${ordersTodayAsync.value ?? 0} order',
-                style: TextStyle(
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w600,
-                  color: tokens.textPrimary,
-                ),
-              ),
-            ),
-
-            Divider(
-              color: tokens.border,
-              height: tokens.borderWidth,
-              thickness: tokens.borderWidth,
-            ),
-
-            // 2. Catatan lapangan
-            Padding(
-              padding: EdgeInsets.all(tokens.space16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Catatan lapangan',
-                    style: TextStyle(
-                      fontSize: 12.0,
-                      fontWeight: FontWeight.w600,
-                      color: tokens.textSecondary,
-                    ),
-                  ),
-                  SizedBox(height: tokens.space4),
-                  Text(
-                    spot.notes.isNotEmpty ? spot.notes : 'Tidak ada catatan',
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      color: spot.notes.isNotEmpty
-                          ? tokens.textPrimary
-                          : tokens.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Divider(
-              color: tokens.border,
-              height: tokens.borderWidth,
-              thickness: tokens.borderWidth,
-            ),
-
-            // 3. Jam ramai manual
-            Padding(
-              padding: EdgeInsets.all(tokens.space16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Jam ramai manual',
-                    style: TextStyle(
-                      fontSize: 12.0,
-                      fontWeight: FontWeight.w600,
-                      color: tokens.textSecondary,
-                    ),
-                  ),
-                  SizedBox(height: tokens.space4),
-                  if (spot.peakHours.isEmpty)
-                    Text(
-                      'Tidak ada jam ramai manual',
-                      style: TextStyle(
-                        fontSize: 14.0,
-                        color: tokens.textSecondary,
-                      ),
-                    )
-                  else
-                    ...spot.peakHours.map(
-                      (r) => Padding(
-                        padding: EdgeInsets.symmetric(vertical: tokens.space4),
-                        child: Text(
-                          '${formatDays(r.days)}: ${formatTime(r.start)} - ${formatTime(r.end)}',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: tokens.textPrimary,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            Divider(
-              color: tokens.border,
-              height: tokens.borderWidth,
-              thickness: tokens.borderWidth,
-            ),
-
-            // 4. Terakhir diverifikasi
-            Padding(
-              padding: EdgeInsets.all(tokens.space16),
-              child: Text(
-                formatVerificationDate(spot.lastVerifiedAt),
-                style: TextStyle(fontSize: 12.0, color: tokens.textSecondary),
-              ),
-            ),
-
-            Divider(
-              color: tokens.border,
-              height: tokens.borderWidth,
-              thickness: tokens.borderWidth,
-            ),
-
-            // 5. Hapus (tombol teks danger di paling bawah)
-            Padding(
-              padding: EdgeInsets.all(tokens.space16),
-              child: AppButton.danger(
-                label: 'Hapus spot',
-                isFullWidth: true,
-                onPressed: () => _onDelete(context, ref),
-              ),
+            SpotDetailExtendedSection(
+              spot: spot,
+              ordersToday: ordersTodayAsync.value ?? 0,
+              onDelete: () => _onDelete(context, ref),
             ),
           ],
         ),
